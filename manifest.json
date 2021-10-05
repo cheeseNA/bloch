@@ -12,15 +12,5 @@
   "action": {
     "default_popup": "popup.html"
   },
-  "options_page": "options.html",
-  "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content-script.js"
-      ]
-    }
-  ]
+  "options_page": "options.html"
 }
