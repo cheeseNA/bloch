@@ -1,5 +1,8 @@
 chrome.runtime.onInstalled.addListener(() => {
   console.log('onInstalled fired');
+  chrome.storage.sync.set({
+    rules: ['www.youtube.com', 'godfield.net'],
+  });
 });
 
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
@@ -7,13 +10,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
     console.log('onHistoryStateUpdated fired');
     console.log(details);
 
-    if (details.url.search(/https:\/\/www\.youtube\.com/) !== -1) {
-      console.log('pattern matched');
-      chrome.scripting.executeScript({
-        target: { tabId: details.tabId },
-        function: redirectToCat,
-      });
-    }
+    manageNavigationEvent(details.url, details.tabId);
   }
 });
 
@@ -22,15 +19,23 @@ chrome.webNavigation.onCommitted.addListener((details) => {
     console.log('onCommitted fired');
     console.log(details);
 
-    if (details.url.search(/https:\/\/www\.youtube\.com/) !== -1) {
-      console.log('pattern matched');
-      chrome.scripting.executeScript({
-        target: { tabId: details.tabId },
-        function: redirectToCat,
-      });
-    }
+    manageNavigationEvent(details.url, details.tabId);
   }
 });
+
+function manageNavigationEvent(url, tabId) {
+  chrome.storage.sync.get(['rules'], function (result) {
+    for (const pattern of result.rules) {
+      if (url.indexOf(pattern) !== -1) {
+        console.log('pattern matched');
+        chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          function: redirectToCat,
+        });
+      }
+    }
+  });
+}
 
 function redirectToCat() {
   location.replace('https://cataas.com/cat/gif');
