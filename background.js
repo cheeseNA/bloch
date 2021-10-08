@@ -38,5 +38,5 @@ function manageNavigationEvent(url, tabId) {
 }
 
 function redirectToCat() {
-  location.replace('https://cataas.com/cat/gif');
+  location.replace('https://randomcatgifs.com/');
 }
