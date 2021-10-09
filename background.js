@@ -1,7 +1,10 @@
 chrome.runtime.onInstalled.addListener(() => {
   console.log('onInstalled fired');
   chrome.storage.sync.set({
-    rules: ['www.youtube.com', 'godfield.net'],
+    rules: [
+      { site: 'www.youtube.com', life: 1 },
+      { site: 'godfield.net', life: 0 },
+    ],
   });
 });
 
@@ -26,7 +29,7 @@ chrome.webNavigation.onCommitted.addListener((details) => {
 function manageNavigationEvent(url, tabId) {
   chrome.storage.sync.get(['rules'], function (result) {
     for (const pattern of result.rules) {
-      if (url.indexOf(pattern) !== -1) {
+      if (url.indexOf(pattern.site) !== -1) {
         console.log('pattern matched');
         chrome.scripting.executeScript({
           target: { tabId: tabId },
