@@ -13,15 +13,29 @@ function addItem(rule) {
   newLi.appendChild(document.createTextNode('  '));
 
   const select = createSelect(rule.life);
+  select.classList.add('lifeSelect');
   select.addEventListener('change', (event) => {
     const liArray = Array.from(document.querySelectorAll('#items>li'));
     const index = liArray.indexOf(newLi);
-    rules[index].life = parseInt(event.target.value);
-
+    const newLife = parseInt(event.target.value);
+    rules[index].life = newLife;
+    if (rules[index].remain > newLife) {
+      const remainSelect = document
+        .querySelectorAll('#items>li')
+        [index].querySelector('.remainSelect');
+      remainSelect.value = newLife;
+      rules[index].remain = newLife;
+    }
     chrome.storage.sync.set({ rules: rules });
     console.log(`rule changed: ${JSON.stringify(rules)}`);
   });
   newLi.appendChild(select);
+  newLi.appendChild(document.createTextNode('  '));
+
+  const remainSelect = createSelect(rule.remain);
+  remainSelect.classList.add('remainSelect');
+  remainSelect.setAttribute('disabled', 'disabled');
+  newLi.appendChild(remainSelect);
   newLi.appendChild(document.createTextNode('  '));
 
   const deleteLink = document.createElement('a');
@@ -48,7 +62,8 @@ function addButtonListener() {
   const site = addText.value;
   const domainPattern = /[0-9a-zA-Z\-:]+\.[0-9a-zA-Z\-:]+/;
   if (domainPattern.test(site)) {
-    const newRule = { site: site, life: parseInt(addSelect.value) };
+    const life = parseInt(addSelect.value);
+    const newRule = { site: site, life: life, remain: life };
     rules.push(newRule);
     addItem(newRule);
 

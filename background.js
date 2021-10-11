@@ -2,8 +2,8 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('onInstalled fired');
   chrome.storage.sync.set({
     rules: [
-      { site: 'www.youtube.com', life: 1 },
-      { site: 'godfield.net', life: 0 },
+      { site: 'www.youtube.com', life: 10, remain: 10 },
+      { site: 'godfield.net', life: 0, remain: 0 },
     ],
   });
 });
