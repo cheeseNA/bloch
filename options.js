@@ -63,7 +63,7 @@ function addButtonListener() {
   const domainPattern = /[0-9a-zA-Z\-:]+\.[0-9a-zA-Z\-:]+/;
   if (domainPattern.test(site)) {
     const life = parseInt(addSelect.value);
-    const newRule = { site: site, life: life, remain: life };
+    const newRule = { site: site, life: life, remain: life, lastVisited: 0.0 };
     rules.push(newRule);
     addItem(newRule);
 
