@@ -6,6 +6,27 @@ chrome.runtime.onInstalled.addListener(() => {
       { site: 'godfield.net', life: 0, remain: 0, lastVisited: 0.0 },
     ],
   });
+
+  const remainUpdateAlarm = new Date();
+  remainUpdateAlarm.setHours(0, 0, 0, 0);
+  remainUpdateAlarm.setDate(remainUpdateAlarm.getDate() + 1);
+  console.log(remainUpdateAlarm);
+  chrome.alarms.create('remainUpdateAlarm', {
+    when: remainUpdateAlarm.getTime(),
+    periodInMinutes: 2,
+  });
+});
+
+chrome.alarms.onAlarm.addListener(function (alarm) {
+  if (alarm.name == 'remainUpdateAlarm') {
+    console.log('remainUpdateAlarm fired');
+    chrome.storage.sync.get(['rules'], function (result) {
+      for (const rule of result.rules) {
+        rule.remain = rule.life;
+      }
+      chrome.storage.sync.set({ rules: result.rules });
+    });
+  }
 });
 
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
@@ -28,28 +49,28 @@ chrome.webNavigation.onCommitted.addListener((details) => {
 
 function manageNavigationEvent(url, tabId, timeStamp) {
   chrome.storage.sync.get(['rules'], function (result) {
-    for (const [index, rule] of result.rules.entries()) {
+    for (const rule of result.rules) {
       if (url.indexOf(rule.site) !== -1) {
         console.log('pattern matched');
         if (timeStamp > rule.lastVisited + 1000.0) {
           console.log('new visit');
           if (rule.remain <= 0) {
             console.log('redirect');
-            result.rules[index].lastVisited = timeStamp;
+            rule.lastVisited = timeStamp;
             chrome.storage.sync.set({ rules: result.rules });
             chrome.scripting.executeScript({
               target: { tabId: tabId },
               function: redirectToCat,
             });
           } else {
-            result.rules[index].lastVisited = timeStamp;
-            result.rules[index].remain -= 1;
+            rule.lastVisited = timeStamp;
+            rule.remain -= 1;
             chrome.storage.sync.set({ rules: result.rules });
-            console.log(`remain decreased to ${result.rules[index].remain}`);
+            console.log(`remain decreased to ${rule.remain}`);
           }
         } else {
           console.log('repeated access');
-          result.rules[index].lastVisited = timeStamp;
+          rule.lastVisited = timeStamp;
           chrome.storage.sync.set({ rules: result.rules });
         }
       }
