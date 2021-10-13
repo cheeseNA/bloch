@@ -13,7 +13,7 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log(remainUpdateAlarm);
   chrome.alarms.create('remainUpdateAlarm', {
     when: remainUpdateAlarm.getTime(),
-    periodInMinutes: 2,
+    periodInMinutes: 60 * 24,
   });
 });
 
