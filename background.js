@@ -29,6 +29,40 @@ chrome.alarms.onAlarm.addListener(function (alarm) {
   }
 });
 
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    console.log('onActivated fired');
+    console.log(tabs);
+    let testUrl;
+    if (tabs[0].url === '') {
+      if (tabs[0].pendingUrl === '') {
+        console.log('cannot find url');
+        return;
+      } else {
+        testUrl = tabs[0].pendingUrl;
+      }
+    } else {
+      testUrl = tabs[0].url;
+    }
+    console.log(`testUrl: ${testUrl}`);
+
+    let badgeText;
+    chrome.storage.sync.get(['rules'], function (result) {
+      for (const rule of result.rules) {
+        if (testUrl.indexOf(rule.site) !== -1) {
+          badgeText = rule.remain.toString();
+          console.log(`show badge text ${badgeText}`);
+          chrome.action.setBadgeText(
+            { text: badgeText, tabId: tabs[0].id },
+            () => {}
+          );
+          break;
+        }
+      }
+    });
+  });
+});
+
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
   if (details.frameId === 0) {
     console.log('onHistoryStateUpdated fired');
@@ -67,6 +101,10 @@ function manageNavigationEvent(url, tabId, timeStamp) {
             rule.remain -= 1;
             chrome.storage.sync.set({ rules: result.rules });
             console.log(`remain decreased to ${rule.remain}`);
+            chrome.action.setBadgeText(
+              { text: rule.remain.toString(), tabId: tabId },
+              () => {}
+            );
           }
         } else {
           console.log('repeated access');

@@ -10,7 +10,8 @@
     "storage",
     "webNavigation",
     "scripting",
-    "alarms"
+    "alarms",
+    "tabs"
   ],
   "host_permissions":[
     "<all_urls>"
