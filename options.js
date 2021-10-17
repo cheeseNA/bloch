@@ -1,5 +1,6 @@
 const lifeMax = 30;
 let rules;
+let timing;
 
 // add rule to items dom
 function addItem(rule) {
@@ -10,9 +11,9 @@ function addItem(rule) {
   const textSpan = document.createElement('span');
   textSpan.textContent = rule.site;
   newLi.appendChild(textSpan);
-  newLi.appendChild(document.createTextNode('  '));
+  newLi.appendChild(document.createTextNode('\u00a0\u00a0'));
 
-  const select = createSelect(rule.life);
+  const select = createSelect(lifeMax, rule.life);
   select.classList.add('lifeSelect');
   select.addEventListener('change', (event) => {
     const liArray = Array.from(document.querySelectorAll('#items>li'));
@@ -30,13 +31,13 @@ function addItem(rule) {
     console.log(`rule changed: ${JSON.stringify(rules)}`);
   });
   newLi.appendChild(select);
-  newLi.appendChild(document.createTextNode('  '));
+  newLi.appendChild(document.createTextNode('\u00a0\u00a0'));
 
-  const remainSelect = createSelect(rule.remain);
+  const remainSelect = createSelect(lifeMax, rule.remain);
   remainSelect.classList.add('remainSelect');
   remainSelect.setAttribute('disabled', 'disabled');
   newLi.appendChild(remainSelect);
-  newLi.appendChild(document.createTextNode('  '));
+  newLi.appendChild(document.createTextNode('\u00a0\u00a0'));
 
   const deleteLink = document.createElement('a');
   deleteLink.textContent = '[Delete]';
@@ -75,9 +76,9 @@ function addButtonListener() {
 }
 
 // create select (with options) dom
-function createSelect(selectedValue) {
+function createSelect(maxIndex, selectedValue) {
   const select = document.createElement('select');
-  for (i = 0; i <= lifeMax; i++) {
+  for (i = 0; i <= maxIndex; i++) {
     const op = document.createElement('option');
     op.value = i;
     op.text = i;
@@ -95,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
     .querySelector('#addButton')
     .addEventListener('click', addButtonListener);
   const addDiv = document.querySelector('#addDiv');
-  const addSelect = createSelect(0);
+  const addSelect = createSelect(lifeMax, 0);
   addSelect.name = 'addSelect';
   addSelect.id = 'addSelect';
   addDiv.insertBefore(addSelect, document.getElementById('addButton'));
@@ -106,5 +107,43 @@ document.addEventListener('DOMContentLoaded', function () {
     for (const rule of result.rules) {
       addItem(rule);
     }
+  });
+
+  // construct timing form
+  chrome.storage.sync.get(['timing'], function (result) {
+    timing = result.timing;
+    const timingDiv = document.querySelector('#timing');
+    const hour = result.timing.hour;
+    const minute = result.timing.minute;
+    const hourSelect = createSelect(23, hour);
+    const minuteSelect = createSelect(59, minute);
+    function updateAlarm(hour, minute) {
+      const remainUpdateAlarm = new Date();
+      remainUpdateAlarm.setHours(hour, minute, 0, 0);
+      remainUpdateAlarm.setDate(remainUpdateAlarm.getDate() + 1);
+      console.log(remainUpdateAlarm);
+      chrome.alarms.create('remainUpdateAlarm', {
+        when: remainUpdateAlarm.getTime(),
+        periodInMinutes: 60 * 24,
+      });
+    }
+    hourSelect.addEventListener('change', (event) => {
+      timing.hour = parseInt(event.target.value);
+      chrome.storage.sync.set({ timing: timing });
+      updateAlarm(timing.hour, timing.minute);
+      console.log(`timing changed: ${JSON.stringify(timing)}`);
+    });
+    minuteSelect.addEventListener('change', (event) => {
+      timing.minute = parseInt(event.target.value);
+      chrome.storage.sync.set({ timing: timing });
+      updateAlarm(timing.hour, timing.minute);
+      console.log(`timing changed: ${JSON.stringify(timing)}`);
+    });
+    timingDiv.appendChild(document.createTextNode('hour:\u00a0\u00a0'));
+    timingDiv.appendChild(hourSelect);
+    timingDiv.appendChild(
+      document.createTextNode('\u00a0\u00a0minute:\u00a0\u00a0')
+    );
+    timingDiv.appendChild(minuteSelect);
   });
 });

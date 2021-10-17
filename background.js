@@ -5,6 +5,7 @@ chrome.runtime.onInstalled.addListener(() => {
       { site: 'www.youtube.com', life: 10, remain: 10, lastVisited: 0.0 },
       { site: 'godfield.net', life: 0, remain: 0, lastVisited: 0.0 },
     ],
+    timing: { hour: 0, minute: 0 },
   });
 
   const remainUpdateAlarm = new Date();
